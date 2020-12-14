@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:device_info/device_info.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 typedef QRViewCreatedCallback = void Function(QRViewController);
@@ -46,16 +49,35 @@ class _QRViewState extends State<QRView> {
 
   Widget _getPlatformQrView() {
     Widget _platformQrView;
+    // This is used in the platform side to register the view.
+    const viewType = 'net.touchcapture.qr.flutterqr/qrview';
+
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        _platformQrView = AndroidView(
-          viewType: 'net.touchcapture.qr.flutterqr/qrview',
-          onPlatformViewCreated: _onPlatformViewCreated,
-        );
+        _platformQrView = PlatformViewLink(
+            viewType: viewType,
+            surfaceFactory: (context, controller) {
+              return AndroidViewSurface(
+                  controller: controller,
+                  hitTestBehavior: PlatformViewHitTestBehavior.opaque,
+                  gestureRecognizers: const <
+                      Factory<OneSequenceGestureRecognizer>>{});
+            },
+            onCreatePlatformView: (params) {
+              return PlatformViewsService.initSurfaceAndroidView(
+                id: params.id,
+                viewType: viewType,
+                layoutDirection: TextDirection.ltr,
+                // creationParams: creationParams,
+              )
+                ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
+                ..addOnPlatformViewCreatedListener(_onPlatformViewCreated)
+                ..create();
+            });
         break;
       case TargetPlatform.iOS:
         _platformQrView = UiKitView(
-          viewType: 'net.touchcapture.qr.flutterqr/qrview',
+          viewType: viewType,
           onPlatformViewCreated: _onPlatformViewCreated,
           creationParams: _CreationParams.fromWidget(0, 0).toMap(),
           creationParamsCodec: StandardMessageCodec(),
