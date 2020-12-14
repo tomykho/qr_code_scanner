@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:device_info/device_info.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
