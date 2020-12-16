@@ -1,24 +1,33 @@
 package net.touchcapture.qr.flutterqr
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.NonNull
+import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
+import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.platform.PlatformViewRegistry
+import net.touchcapture.qr.flutterqr.mlkit.QRViewMLKitFactory
+import net.touchcapture.qr.flutterqr.mlkit.camerax.CameraXLivePreviewActivity
+import net.touchcapture.qr.flutterqr.zxing.QRView
+import net.touchcapture.qr.flutterqr.zxing.QRViewFactory
 
 
 class FlutterQrPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     var cameraPermissionContinuation: Runnable? = null
     var requestingPermission = false
+    val flutterActivity: FlutterActivity = FlutterActivity();
+    var channel: MethodChannel? = null
 
     /** Plugin registration embedding v1 */
     companion object {
@@ -45,14 +54,24 @@ class FlutterQrPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     /** Plugin start for both embedding v1 & v2 */
     private fun onAttachedToEngines(platformViewRegistry: PlatformViewRegistry, messenger: BinaryMessenger) {
+        channel = MethodChannel(messenger, "net.touchcapture.qr.flutterqr")
+        channel!!.setMethodCallHandler(this)
         platformViewRegistry
                 .registerViewFactory(
                         "net.touchcapture.qr.flutterqr/qrview", QRViewFactory(messenger))
+        platformViewRegistry
+                .registerViewFactory(
+                        "net.touchcapture.qr.flutterqr/qrviewmlkit", QRViewMLKitFactory(messenger)
+                )
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             "checkAndRequestPermission" -> checkAndRequestPermission(result)
+            "scanCodeCameraX" -> {
+                val intent = Intent(Shared.activity, CameraXLivePreviewActivity::class.java)
+                Shared.activity?.startActivity(intent)
+            }
         }
     }
 

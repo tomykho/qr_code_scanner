@@ -1,4 +1,4 @@
-package net.touchcapture.qr.flutterqr
+package net.touchcapture.qr.flutterqr.mlkit
 
 import android.content.Context
 import io.flutter.plugin.common.BinaryMessenger
@@ -6,12 +6,11 @@ import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
 
-
-class QRViewFactory(private val messenger: BinaryMessenger) :
+class QRViewMLKitFactory(private val messenger: BinaryMessenger) :
         PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 
     override fun create(context: Context, id: Int, obj: Any?): PlatformView {
-        return QRView(messenger, id, context)
+        return QRViewMLKit(messenger, id, context)
     }
 
 }

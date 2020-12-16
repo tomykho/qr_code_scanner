@@ -1,8 +1,9 @@
-package net.touchcapture.qr.flutterqr
+package net.touchcapture.qr.flutterqr.zxing
 
 import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
@@ -15,6 +16,9 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
+import net.touchcapture.qr.flutterqr.Shared
+import net.touchcapture.qr.flutterqr.mlkit.camerax.CameraXLivePreviewActivity
+
 class QRView(messenger: BinaryMessenger, id: Int, private val context: Context) :
         PlatformView, MethodChannel.MethodCallHandler {
 

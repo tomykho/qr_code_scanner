@@ -6,6 +6,13 @@ import 'package:flutter/services.dart';
 
 typedef QRViewCreatedCallback = void Function(QRViewController);
 
+/// Creates a Camera window with an QR scanner that continuously scans for
+/// codes.
+///
+/// Takes [key] as reference and [onQRViewCreated] as callback for when
+/// a code is scanned. [overlay] can be used to place an overlay over the
+/// camera window and [overlayMargin] can be used to give a margin to that
+/// overlay.
 class QRView extends StatefulWidget {
   const QRView({
     @required Key key,
@@ -76,6 +83,7 @@ class _QRViewState extends State<QRView> {
   }
 }
 
+/// Sets the initial [width] and [height] of the widget for iOS.
 class _CreationParams {
   _CreationParams({this.width, this.height});
 
@@ -97,6 +105,7 @@ class _CreationParams {
   }
 }
 
+/// Controls the camera view.
 class QRViewController {
   QRViewController._(int id, GlobalKey qrKey)
       : _channel = MethodChannel('net.touchcapture.qr.flutterqr/qrview_$id') {
@@ -122,26 +131,34 @@ class QRViewController {
 
   Stream<String> get scannedDataStream => _scanUpdateController.stream;
 
+  /// Flips the camera.
   void flipCamera() {
     _channel.invokeMethod('flipCamera');
   }
 
+  /// Toggles the flashlight.
   void toggleFlash() {
     _channel.invokeMethod('toggleFlash');
   }
 
+  /// Pauses the camera.
   void pauseCamera() {
     _channel.invokeMethod('pauseCamera');
   }
 
+  /// Resumes the camera.
   void resumeCamera() {
     _channel.invokeMethod('resumeCamera');
   }
 
+  /// Disposes the scan controller.
   void dispose() {
     _scanUpdateController.close();
   }
 
+  /// Updates the dimension of the camera. Takes the [key] to find the current
+  /// render object. This is necessary for iOS because it will otherwise
+  /// automatically scale.
   void updateDimensions(GlobalKey key) {
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       final RenderBox renderBox = key.currentContext.findRenderObject();
