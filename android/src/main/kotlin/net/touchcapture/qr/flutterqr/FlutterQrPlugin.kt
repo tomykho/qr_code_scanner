@@ -18,9 +18,6 @@ import io.flutter.plugin.platform.PlatformViewRegistry
 
 class FlutterQrPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
-    var cameraPermissionContinuation: Runnable? = null
-    var requestingPermission = false
-
     /** Plugin registration embedding v1 */
     companion object {
         @JvmStatic
@@ -30,8 +27,6 @@ class FlutterQrPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun onAttachedToV1(registrar: PluginRegistry.Registrar) {
-        registrar.addRequestPermissionsResultListener(CameraRequestPermissionsListener())
-        checkAndRequestPermission(null)
         onAttachedToEngines(registrar.platformViewRegistry(), registrar.messenger(), registrar.activity())
     }
 
@@ -54,15 +49,10 @@ class FlutterQrPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
-        when (call.method) {
-            "checkAndRequestPermission" -> checkAndRequestPermission(result)
-        }
     }
 
     override fun onAttachedToActivity(activityPluginBinding: ActivityPluginBinding) {
         Shared.activity = activityPluginBinding.activity
-        activityPluginBinding.addRequestPermissionsResultListener(CameraRequestPermissionsListener())
-        checkAndRequestPermission(null)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
@@ -77,45 +67,4 @@ class FlutterQrPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         Shared.activity = null
     }
 
-    private inner class CameraRequestPermissionsListener : PluginRegistry.RequestPermissionsResultListener {
-        override fun onRequestPermissionsResult(id: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
-            if (id == QRView.CAMERA_REQUEST_ID && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                cameraPermissionContinuation?.run()
-                return true
-            }
-            return false
-        }
-    }
-
-    private fun hasCameraPermission(): Boolean {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
-                Shared.activity?.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun checkAndRequestPermission(result: Result?) {
-        if (cameraPermissionContinuation != null) {
-            result?.error("cameraPermission", "Camera permission request ongoing", null)
-        }
-
-        cameraPermissionContinuation = Runnable {
-            cameraPermissionContinuation = null
-            if (!hasCameraPermission()) {
-                result?.error(
-                        "cameraPermission", "MediaRecorderCamera permission not granted", null)
-                return@Runnable
-            }
-        }
-
-        requestingPermission = false
-        if (hasCameraPermission()) {
-            cameraPermissionContinuation?.run()
-        } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestingPermission = true
-                Shared.activity?.requestPermissions(
-                        arrayOf(Manifest.permission.CAMERA),
-                        QRView.CAMERA_REQUEST_ID)
-            }
-        }
-    }
 }
